@@ -26,6 +26,15 @@ Length: 150–200 words
 
 --------------------------------------------------
 
+Team Details:
+Branch: CSE
+Year: 3rd Year
+1. P.Sannith (Leader) - 23567T0942
+2. R.Jayathusri - 23567T0951
+3. K.Akshitha - 23567T0931
+
+--------------------------------------------------
+
 Project 1: Smart Classroom Attendance using Face Detection
 
 Context:
@@ -62,6 +71,19 @@ Patient safety
 Timely medication
 Support for elderly
 Health monitoring
+
+--------------------------------------------------
+
+Project 4: Custom Windows ISO for B.Tech Studies
+
+Context:
+Installing standard Windows requires students to manually download and install multiple programming tools and software (Python, Java, MS Office, WSL), which is time-consuming. This project involves creating a customized Windows ISO that comes pre-installed with all necessary B.Tech software, allowing for a single-step setup.
+
+Focus:
+Efficiency
+Standardization
+One-click setup
+Time saving for students
 
 --------------------------------------------------
 
