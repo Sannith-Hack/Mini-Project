@@ -55,9 +55,11 @@ projects = {
 }
 
 team_members = [
-    {"name": "P.Sannith (Leader)", "roll": "23567T0942"},
-    {"name": "R.Jayathusri", "roll": "23567T0951"},
-    {"name": "K.Akshitha", "roll": "23567T0931"}
+    {"name": "D.Ramya Sree (Leader)", "roll": "245671861L"},
+    {"name": "K.Snehapriya", "roll": "23567T1834"},
+    {"name": "A.Sanjana", "roll": "23567T1806"},
+    {"name": "Md.mahfooz", "roll": "23567T1839"},
+    {"name": "Md.khadeer", "roll": "23567T1838"}
 ]
 
 branch = "CSE"
