@@ -62,7 +62,7 @@ team_members = [
     {"name": "Md.khadeer", "roll": "23567T1838"}
 ]
 
-branch = "CSE"
+branch = "IT"
 year = "3rd Year"
 
 def create_docx(filename, data):
