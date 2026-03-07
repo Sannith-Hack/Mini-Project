@@ -10,76 +10,75 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
         .container { max-width: 900px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .card { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1, h2 { color: #333; }
+        h1, h2 { color: #333; margin-top: 0; }
         .full-width { grid-column: 1 / -1; }
-        input, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 1.5px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 14px; background: #4CAF50; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: background 0.3s; }
         button:hover { background: #45a049; }
-        .btn-pdf { background: #E91E63; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-pdf { background: #E91E63; margin-top: 15px; }
         .btn-pdf:hover { background: #C2185B; }
         .btn-admin { background: #2196F3; }
-        .btn-admin:hover { background: #1976D2; }
-        #result { margin-top: 1.5rem; padding: 1rem; border-radius: 8px; display: none; text-align: center; }
-        .low { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-        .medium { background: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }
-        .high { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
-        .resource-card { background: #e3f2fd; padding: 15px; border-radius: 8px; border-left: 5px solid #2196F3; }
-        .history-item { font-size: 0.9rem; padding: 5px; border-bottom: 1px solid #eee; }
-        canvas { max-width: 100%; margin-top: 15px; }
+        #result { margin-top: 1.5rem; padding: 1.5rem; border-radius: 10px; display: none; text-align: center; border-left: 8px solid #ccc; }
+        .low { background: #e8f5e9; border-color: #2e7d32; color: #1b5e20; }
+        .medium { background: #fff3e0; border-color: #ef6c00; color: #e65100; }
+        .high { background: #ffebee; border-color: #c62828; color: #b71c1c; }
+        .resource-card { background: #e3f2fd; padding: 15px; border-radius: 8px; border-left: 5px solid #2196F3; margin-bottom: 10px; }
+        .history-item { padding: 8px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+        canvas { max-width: 100%; margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Input Form -->
+        <!-- Assessment Form -->
         <div class="card">
             <h2>Assess Your Stress</h2>
             <form id="stressForm">
-                <input type="text" id="name" placeholder="Full Name" required>
-                <input type="number" id="sleep" placeholder="Sleep Hours (per day)" required min="0" max="24">
-                <input type="number" id="study" placeholder="Study Hours (per day)" required min="0" max="24">
-                <input type="number" id="assignments" placeholder="Assignments Count" required min="0">
+                <input type="text" id="name" placeholder="Student Name" required>
+                <input type="number" id="sleep" placeholder="Sleep Hours (0-24)" required min="0" max="24">
+                <input type="number" id="study" placeholder="Study Hours (0-24)" required min="0" max="24">
+                <input type="number" id="assignments" placeholder="Active Assignments" required min="0">
                 <select id="mood" required>
                     <option value="Normal">Normal Mood</option>
-                    <option value="Anxious">Anxious / Nervous</option>
-                    <option value="Tired">Tired / Burnout</option>
-                    <option value="Happy">Happy / Energetic</option>
+                    <option value="Anxious">Anxious / Stressed</option>
+                    <option value="Happy">Happy / Calm</option>
+                    <option value="Tired">Tired / Exhausted</option>
                 </select>
-                <button type="submit">Get AI Analysis</button>
+                <button type="submit" id="submitBtn">Get AI Analysis</button>
             </form>
         </div>
 
-        <!-- Result & Chart -->
+        <!-- Result Section -->
         <div class="card">
-            <h2>Your Analysis</h2>
+            <h2>Analysis Result</h2>
             <div id="result">
                 <h3 id="stressLevel"></h3>
-                <p id="suggestion"></p>
-                <button id="downloadPdf" class="btn-pdf">Download PDF Report</button>
+                <div id="suggestion" style="margin: 15px 0; line-height: 1.6;"></div>
+                <button id="downloadPdf" class="btn-pdf">Download Report PDF</button>
             </div>
             <canvas id="userChart"></canvas>
         </div>
 
-        <!-- Resources & History -->
+        <!-- Side Cards -->
         <div class="card">
-            <h2>Helpful Resources</h2>
+            <h2>Wellness Resources</h2>
             <div class="resource-card">
-                <p><strong>Breathe:</strong> Follow the 4-7-8 technique. Inhale 4s, hold 7s, exhale 8s.</p>
-                <a href="https://www.headspace.com/meditation/breathing-exercises" target="_blank">View Guided Meditation</a>
+                <strong>4-7-8 Breathing:</strong> Inhale 4s, Hold 7s, Exhale 8s.
             </div>
-            <div class="resource-card" style="margin-top:10px; border-color:#FF9800; background:#FFF3E0;">
-                <p><strong>Pomodoro:</strong> Study for 25 mins, break for 5 mins.</p>
+            <div class="resource-card" style="border-color: #FF9800; background: #FFF3E0;">
+                <strong>Pomodoro:</strong> Study 25 min, Break 5 min.
             </div>
         </div>
 
         <div class="card">
-            <h2>Your History (Last 5)</h2>
-            <div id="historyList">Enter your name above to see history.</div>
+            <h2>Assessment History</h2>
+            <div id="historyList" style="max-height: 200px; overflow-y: auto;">Enter name to load history.</div>
         </div>
 
-        <!-- Admin View -->
+        <!-- Dashboard -->
         <div class="card full-width">
-            <h2>Admin Dashboard (Student Overview)</h2>
-            <button id="refreshAdmin" class="btn-admin">Refresh Stats</button>
+            <h2>Admin Dashboard (Student Stats)</h2>
+            <button id="refreshAdmin" class="btn-admin" style="width: auto; padding: 8px 20px;">Refresh Data</button>
             <canvas id="adminChart" style="max-height: 250px;"></canvas>
         </div>
     </div>
@@ -88,27 +87,15 @@
         const API_URL = 'http://localhost:3001';
         let userChart, adminChart;
 
-        // Initialize Charts
-        function initUserChart(sleep, study, assignments) {
-            const ctx = document.getElementById('userChart').getContext('2d');
-            if (userChart) userChart.destroy();
-            userChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Sleep', 'Study', 'Assignments'],
-                    datasets: [{
-                        label: 'Your Metrics',
-                        data: [sleep, study, assignments],
-                        backgroundColor: ['#4CAF50', '#2196F3', '#FF9800']
-                    }]
-                }
-            });
-        }
-
-        // Form Submission
+        // Form Submit
         document.getElementById('stressForm').onsubmit = async (e) => {
             e.preventDefault();
-            const data = {
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = "AI is Analyzing...";
+
+            const payload = {
                 name: document.getElementById('name').value,
                 sleep: document.getElementById('sleep').value,
                 study: document.getElementById('study').value,
@@ -116,74 +103,124 @@
                 mood: document.getElementById('mood').value
             };
 
-            const res = await fetch(API_URL + '/submit', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            const result = await res.json();
+            try {
+                const res = await fetch(`${API_URL}/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
 
-            // Show results
-            const resultDiv = document.getElementById('result');
-            resultDiv.style.display = 'block';
-            resultDiv.className = result.level.toLowerCase();
-            document.getElementById('stressLevel').textContent = `Stress Level: ${result.level}`;
-            document.getElementById('suggestion').textContent = result.suggestion;
+                // UI Update
+                const resDiv = document.getElementById('result');
+                resDiv.style.display = 'block';
+                resDiv.className = `card ${result.level.toLowerCase()}`;
+                resDiv.dataset.rawLevel = result.level; // Hidden storage for PDF
+                
+                document.getElementById('stressLevel').textContent = `Result: ${result.level} STRESS`;
+                document.getElementById('suggestion').textContent = result.suggestion;
 
-            // Update Chart & History
-            initUserChart(data.sleep, data.study, data.assignments);
-            fetchHistory(data.name);
+                // Visuals
+                updateUserChart(payload);
+                loadHistory(payload.name);
+            } catch (err) {
+                alert("Connection error. Is the server running?");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
         };
 
-        // Fetch History
-        async function fetchHistory(name) {
-            const res = await fetch(API_URL + '/history/' + name);
-            const history = await res.json();
-            const list = document.getElementById('historyList');
-            list.innerHTML = history.map(h => `
-                <div class="history-item">
-                    ${new Date(h.created_at).toLocaleDateString()}: <strong>${h.stress_level}</strong>
-                </div>
-            `).join('');
-        }
-
-        // Admin Stats
-        document.getElementById('refreshAdmin').onclick = async () => {
-            const res = await fetch(API_URL + '/admin-stats');
-            const stats = await res.json();
-            const ctx = document.getElementById('adminChart').getContext('2d');
-            
-            if (adminChart) adminChart.destroy();
-            adminChart = new Chart(ctx, {
-                type: 'doughnut',
+        function updateUserChart(data) {
+            const ctx = document.getElementById('userChart').getContext('2d');
+            if (userChart) userChart.destroy();
+            userChart = new Chart(ctx, {
+                type: 'bar',
                 data: {
-                    labels: stats.map(s => s.stress_level),
+                    labels: ['Sleep', 'Study', 'Tasks'],
                     datasets: [{
-                        data: stats.map(s => s.count),
-                        backgroundColor: ['#f44336', '#ff9800', '#4caf50']
+                        label: 'Hours/Count',
+                        data: [data.sleep, data.study, data.assignments],
+                        backgroundColor: ['#4CAF50', '#2196F3', '#FF9800']
                     }]
                 }
             });
-        };
+        }
+
+        async function loadHistory(name) {
+            try {
+                const res = await fetch(`${API_URL}/history/${name}`);
+                const data = await res.json();
+                const list = document.getElementById('historyList');
+                
+                if (Array.isArray(data)) {
+                    list.innerHTML = data.map(h => `
+                        <div class="history-item">
+                            ${new Date(h.created_at).toLocaleDateString()}: <b>${h.stress_level}</b>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = "No history found or error loading data.";
+                }
+            } catch (err) {
+                console.error("History loading failed:", err);
+            }
+        }
 
         // PDF Generation
         document.getElementById('downloadPdf').onclick = () => {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             const name = document.getElementById('name').value;
-            const level = document.getElementById('stressLevel').innerText;
+            const level = document.getElementById('result').dataset.rawLevel;
             const suggestion = document.getElementById('suggestion').innerText;
 
-            doc.setFontSize(20);
-            doc.text("Mental Stress Analysis Report", 20, 20);
-            doc.setFontSize(12);
-            doc.text(`Student: ${name}`, 20, 40);
-            doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 50);
-            doc.text(`Result: ${level}`, 20, 60);
-            doc.text("AI Suggestions:", 20, 80);
-            doc.text(doc.splitTextToSize(suggestion, 160), 20, 90);
+            doc.setFillColor(52, 73, 94);
+            doc.rect(0, 0, 210, 40, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.text("Mental Stress Analysis Report", 20, 25);
             
-            doc.save(`${name}_Stress_Report.pdf`);
+            doc.setTextColor(40, 40, 40);
+            doc.setFontSize(14);
+            doc.text(`Student: ${name}`, 20, 55);
+            doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 65);
+            
+            doc.setDrawColor(200, 200, 200);
+            doc.line(20, 75, 190, 75);
+
+            doc.setFontSize(16);
+            doc.text("Assessment Result:", 20, 95);
+            doc.setFont(undefined, 'bold');
+            doc.text(`${level} STRESS`, 80, 95);
+            
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(14);
+            doc.text("AI Expert Suggestions:", 20, 115);
+            
+            doc.setFontSize(12);
+            const lines = doc.splitTextToSize(suggestion, 170);
+            doc.text(lines, 20, 125);
+
+            doc.save(`${name}_Health_Report.pdf`);
+        };
+
+        // Admin Stats
+        document.getElementById('refreshAdmin').onclick = async () => {
+            const res = await fetch(`${API_URL}/admin-stats`);
+            const data = await res.json();
+            const ctx = document.getElementById('adminChart').getContext('2d');
+            if (adminChart) adminChart.destroy();
+            adminChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(d => d.stress_level),
+                    datasets: [{
+                        data: data.map(d => d.count),
+                        backgroundColor: ['#F44336', '#FF9800', '#4CAF50']
+                    }]
+                }
+            });
         };
     </script>
 </body>
