@@ -21,7 +21,8 @@ app.use(express.static('public'));
 const db = mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'kali',
+    password: process.env.DB_PASSWORD || process.env.DB_PASS || 'kali',
+    database: process.env.DB_NAME || undefined,
     port: process.env.DB_PORT || 3306,
     // TiDB Serverless requires SSL, so we enable it if DB_SSL is set to 'true' in Render
     ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : undefined,
@@ -34,9 +35,11 @@ function hashPassword(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
 }
 
+const dbName = process.env.DB_NAME || 'stressdb';
+
 const dbSetupQuery = `
-CREATE DATABASE IF NOT EXISTS stressdb;
-USE stressdb;
+CREATE DATABASE IF NOT EXISTS \`${dbName}\`;
+USE \`${dbName}\`;
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY, 
     username VARCHAR(50) UNIQUE, 
@@ -105,7 +108,7 @@ app.post('/submit', async (req, res) => {
         }
     }
 
-    db.query('USE stressdb', () => {
+    db.query(`USE ${dbName}`, () => {
         const query = 'INSERT INTO students (name, sleep, study, assignments, mood, stress_level, suggestion) VALUES (?, ?, ?, ?, ?, ?, ?)';
         db.query(query, [name, sleep, study, assignments, mood, level, finalSuggestion], (err) => {
             if (err) return res.status(500).json({ error: err.message });
@@ -115,7 +118,7 @@ app.post('/submit', async (req, res) => {
 });
 
 app.get('/history/:name', (req, res) => {
-    db.query('USE stressdb', () => {
+    db.query(`USE ${dbName}`, () => {
         db.query('SELECT sleep, study, assignments, mood, stress_level, suggestion, created_at FROM students WHERE name = ? ORDER BY created_at DESC LIMIT 10', [req.params.name], (err, results) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json(results);
@@ -124,7 +127,7 @@ app.get('/history/:name', (req, res) => {
 });
 
 app.get('/admin-stats', (req, res) => {
-    db.query('USE stressdb', () => {
+    db.query(`USE ${dbName}`, () => {
         db.query('SELECT stress_level, COUNT(*) as count FROM students GROUP BY stress_level', (err, results) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json(results);
@@ -137,7 +140,7 @@ app.post('/register', (req, res) => {
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
     
     const hashedPassword = hashPassword(password);
-    db.query('USE stressdb', () => {
+    db.query(`USE ${dbName}`, () => {
         db.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword], (err) => {
             if (err) {
                 if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'Username already exists' });
@@ -153,7 +156,7 @@ app.post('/login', (req, res) => {
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
     
     const hashedPassword = hashPassword(password);
-    db.query('USE stressdb', () => {
+    db.query(`USE ${dbName}`, () => {
         db.query('SELECT * FROM users WHERE username = ? AND password = ?', [username, hashedPassword], (err, results) => {
             if (err) return res.status(500).json({ error: err.message });
             if (results.length > 0) {
