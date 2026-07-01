@@ -95,10 +95,45 @@ College students often face intense academic pressure, leading to hidden mental 
 Focus:
 Student mental health
 Early stress detection
-AI-driven personalized advice
+AI‑driven personalized advice
 Data tracking and visualization
 Secure authentication and data privacy
 
 --------------------------------------------------
 
 Generate separate abstracts for each project.
+
+---
+### Recent Development Updates (July 2026)
+
+**Login Page & Google OAuth Integration**
+- Added a polished `public/login.html` featuring a Google Sign‑In button and a username/password form with modern styling.
+- Updated `server.js` to import `path`, serve the login page at the root URL (`GET '/'`), and ensure static assets are delivered from the `public` folder.
+- The Google button points to `/api/auth/google`, which uses the existing Passport Google strategy defined in `config/passport.js` and route `routes/googleAuth.js`.
+- Users can now authenticate via Google OAuth or the traditional username/password flow.
+
+**Environment Configuration**
+- The server now requires the following environment variables (add them to `.env`):
+  ```
+  GOOGLE_CLIENT_ID=your-google-client-id
+  GOOGLE_CLIENT_SECRET=your-google-client-secret
+  JWT_SECRET=your-jwt-secret
+  SESSION_SECRET=your-session-secret
+  CORS_ORIGIN=http://localhost:3001   # optional, include your dev origin(s)
+  ```
+- Missing or mismatched variables cause the Google login to fail; ensure they match the values set in the Google Cloud console.
+
+**Troubleshooting Google Login**
+- Verify the callback URL (`http://localhost:<PORT>/api/auth/google/callback`) is registered in the Google credentials.
+- Ensure `SESSION_SECRET` is set; otherwise Passport cannot maintain a session.
+- During local testing keep `cookie.secure` set to `false` (already configured) and use HTTP.
+
+**Authentication & System Bug Fixes (Completed)**
+- **Frontend & Routing**: Created `public/login.html` featuring Google OAuth Sign-In and a modern username/password form. Updated `server.js` static middleware (`{ index: false }`) so `GET /` cleanly serves `login.html`.
+- **Helmet CSP Configuration**: Disabled strict Content Security Policy in Helmet to allow Google OAuth redirects, Chart.js CDN scripts, and Google Fonts.
+- **JavaScript Syntax Fixes**: Cleaned up illegal string characters (literal `\n`) in `public/app.js`. Added seamless URL parameter handling (`?token=&username=`) on startup to capture incoming Google OAuth tokens and initialize user sessions.
+- **Database Schema Auto-Migration**: Added startup migration logic in `config/db.js` (`ALTER TABLE users ADD COLUMN...`) to automatically upgrade existing MySQL/TiDB database tables with `google_id` and `email` columns without data loss or downtime.
+- **OAuth Collision Prevention**: Updated `config/passport.js` to safely handle missing emails and prevent `ER_DUP_ENTRY` errors when Google display names match existing registered usernames.
+- **Backend Workflow Fixes**: Resolved hanging requests on `/api/stress/admin-stats` by adding missing `res.json(results)` responses in `controllers/stressController.js`.
+
+These changes complete the user login workflow and provide clear guidance for getting Google authentication operational.

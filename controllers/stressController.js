@@ -50,13 +50,14 @@ exports.submitAssessment = async (req, res) => {
 exports.getHistory = (req, res) => {
     db.query('SELECT sleep, study, assignments, mood, stress_level, suggestion, created_at FROM students WHERE name = ? ORDER BY created_at DESC LIMIT 10', [req.user.username], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json(results);
+        res.json(results || []);
     });
 };
 
 exports.getAdminStats = (req, res) => {
     db.query('SELECT stress_level, COUNT(*) as count FROM students GROUP BY stress_level', (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
+        res.json(results || []);
     });
 };
 
@@ -65,10 +66,12 @@ exports.exportCSV = (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         
         let csv = 'Name,Sleep,Study,Assignments,Mood,Stress Level,Date\n';
-        results.forEach(row => {
-            const date = new Date(row.created_at).toLocaleString().replace(/,/g, '');
-            csv += `${row.name},${row.sleep},${row.study},${row.assignments},${row.mood},${row.stress_level},${date}\n`;
-        });
+        if (results && results.length > 0) {
+            results.forEach(row => {
+                const date = new Date(row.created_at).toLocaleString().replace(/,/g, '');
+                csv += `${row.name},${row.sleep},${row.study},${row.assignments},${row.mood},${row.stress_level},${date}\n`;
+            });
+        }
         
         res.header('Content-Type', 'text/csv');
         res.attachment('mindflow_global_data.csv');
