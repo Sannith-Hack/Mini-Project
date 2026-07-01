@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // Database connection (Configured for TiDB / Render deployment)
-const db = mysql.createConnection({
+const db = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || process.env.DB_PASS || 'kali',
@@ -59,10 +59,12 @@ CREATE TABLE IF NOT EXISTS students (
 );
 `;
 
-db.connect((err) => {
-    if (err) console.error('MySQL Connection Error:', err.message);
-    else {
-        db.query(dbSetupQuery, (err) => {
+db.getConnection((err, connection) => {
+    if (err) {
+        console.error('MySQL Connection Error:', err.message);
+    } else {
+        connection.query(dbSetupQuery, (err) => {
+            connection.release();
             if (err) console.error('DB Setup Error:', err.message);
             else console.log('Connected to MySQL and Database is ready.');
         });
@@ -108,31 +110,28 @@ app.post('/submit', async (req, res) => {
         }
     }
 
-    db.query(`USE ${dbName}`, () => {
+
         const query = 'INSERT INTO students (name, sleep, study, assignments, mood, stress_level, suggestion) VALUES (?, ?, ?, ?, ?, ?, ?)';
         db.query(query, [name, sleep, study, assignments, mood, level, finalSuggestion], (err) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ name, level, suggestion: finalSuggestion });
         });
-    });
 });
 
 app.get('/history/:name', (req, res) => {
-    db.query(`USE ${dbName}`, () => {
+
         db.query('SELECT sleep, study, assignments, mood, stress_level, suggestion, created_at FROM students WHERE name = ? ORDER BY created_at DESC LIMIT 10', [req.params.name], (err, results) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json(results);
         });
-    });
 });
 
 app.get('/admin-stats', (req, res) => {
-    db.query(`USE ${dbName}`, () => {
+
         db.query('SELECT stress_level, COUNT(*) as count FROM students GROUP BY stress_level', (err, results) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json(results);
         });
-    });
 });
 
 app.post('/register', (req, res) => {
@@ -140,7 +139,7 @@ app.post('/register', (req, res) => {
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
     
     const hashedPassword = hashPassword(password);
-    db.query(`USE ${dbName}`, () => {
+
         db.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword], (err) => {
             if (err) {
                 if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'Username already exists' });
@@ -148,7 +147,6 @@ app.post('/register', (req, res) => {
             }
             res.json({ success: true, message: 'Registered successfully' });
         });
-    });
 });
 
 app.post('/login', (req, res) => {
@@ -156,7 +154,7 @@ app.post('/login', (req, res) => {
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
     
     const hashedPassword = hashPassword(password);
-    db.query(`USE ${dbName}`, () => {
+
         db.query('SELECT * FROM users WHERE username = ? AND password = ?', [username, hashedPassword], (err, results) => {
             if (err) return res.status(500).json({ error: err.message });
             if (results.length > 0) {
@@ -165,7 +163,6 @@ app.post('/login', (req, res) => {
                 res.status(401).json({ error: 'Invalid credentials' });
             }
         });
-    });
 });
 
 app.listen(port, () => {
