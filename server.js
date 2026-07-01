@@ -18,6 +18,8 @@ const authRoutes = require('./routes/authRoutes');
 const stressRoutes = require('./routes/stressRoutes');
 
 const app = express();
+// Trust first proxy (essential for reverse proxies like Render so rate-limiting and secure session cookies work)
+app.set('trust proxy', 1);
 const port = process.env.PORT || 3001;
 
 // Middleware
