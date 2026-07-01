@@ -337,4 +337,8 @@ window.addEventListener('DOMContentLoaded', () => {
         currentUser = savedUser;
         initDashboard();
     }
+});\n
+// CSV Export
+document.getElementById('downloadCsv').addEventListener('click', () => {
+    window.location.href = `${API_URL}/api/stress/export-csv`;
 });

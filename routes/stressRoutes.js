@@ -7,4 +7,6 @@ router.post('/submit', authenticateToken, stressController.submitAssessment);
 router.get('/history', authenticateToken, stressController.getHistory);
 router.get('/admin-stats', stressController.getAdminStats);
 
+router.get('/export-csv', stressController.exportCSV);
+
 module.exports = router;
