@@ -65,11 +65,13 @@ exports.exportCSV = (req, res) => {
     db.query('SELECT name, sleep, study, assignments, mood, stress_level, created_at FROM students ORDER BY created_at DESC', (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         
-        let csv = 'Name,Sleep,Study,Assignments,Mood,Stress Level,Date\n';
+        let csv = 'Student Identity,Sleep (h),Study (h),Assignments,Mood,Stress Level,Date\n';
         if (results && results.length > 0) {
-            results.forEach(row => {
+            results.forEach((row, idx) => {
                 const date = new Date(row.created_at).toLocaleString().replace(/,/g, '');
-                csv += `${row.name},${row.sleep},${row.study},${row.assignments},${row.mood},${row.stress_level},${date}\n`;
+                // Protect student privacy: only reveal real name if it is the requesting user's own data
+                const displayName = (req.user && row.name === req.user.username) ? `${row.name} (You)` : `Student #${1000 + (idx % 9000)}`;
+                csv += `${displayName},${row.sleep},${row.study},${row.assignments},${row.mood},${row.stress_level},${date}\n`;
             });
         }
         

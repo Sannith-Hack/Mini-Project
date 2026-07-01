@@ -315,4 +315,22 @@
             justify-content: center;
             align-items: center;
             border-radius: 50%;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+        .resource-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(79, 172, 254, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+        .resource-card:hover .resource-icon {
+            transform: scale(1.1) rotate(5deg);
+            background: rgba(79, 172, 254, 0.2);
+        }
+        a {
+            transition: color 0.2s ease, text-shadow 0.2s ease;
+        }
+        a:hover {
+            color: #00f2fe !important;
+            text-shadow: 0 0 8px rgba(0, 242, 254, 0.5);
         }

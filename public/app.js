@@ -202,7 +202,9 @@ async function loadHistory() {
 
 async function loadGlobalStats() {
     try {
-        const res = await fetch(`${API_URL}/api/stress/admin-stats`);
+        const res = await fetch(`${API_URL}/api/stress/admin-stats`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
         const data = await res.json();
         const adminChartEl = document.getElementById('adminChart');
         if (!adminChartEl) return;
@@ -314,7 +316,25 @@ if (downloadPdfBtn) {
 // CSV Export
 const downloadCsvBtn = document.getElementById('downloadCsv');
 if (downloadCsvBtn) {
-    downloadCsvBtn.addEventListener('click', () => {
-        window.location.href = `${API_URL}/api/stress/export-csv`;
+    downloadCsvBtn.addEventListener('click', async () => {
+        try {
+            showToast('Preparing CSV export...');
+            const res = await fetch(`${API_URL}/api/stress/export-csv`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            if (!res.ok) throw new Error('Export failed');
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mindflow_student_data.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+            showToast('CSV downloaded successfully!');
+        } catch (err) {
+            showToast('Failed to export CSV. Please login again.', true);
+        }
     });
 }

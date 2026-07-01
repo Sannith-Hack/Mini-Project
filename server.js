@@ -85,6 +85,12 @@ app.get('/dashboard', (req, res) => {
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
+app.get('/terms', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'terms.html'));
+});
+app.get('/terms.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'terms.html'));
+});
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

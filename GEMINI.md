@@ -137,3 +137,10 @@ Generate separate abstracts for each project.
 - **Backend Workflow Fixes**: Resolved hanging requests on `/api/stress/admin-stats` by adding missing `res.json(results)` responses in `controllers/stressController.js`.
 
 These changes complete the user login workflow and provide clear guidance for getting Google authentication operational.
+
+**UI Refactoring, Workflow Optimization & Security Hardening (July 2026 - Latest)**
+- **Reverse Proxy & OAuth Callback Hardening**: Configured `app.set('trust proxy', 1)` in `server.js` and enabled `proxy: true` in `config/passport.js` (with optional `GOOGLE_CALLBACK_URL` environment variable override) to prevent `redirect_uri_mismatch` errors and ensure HTTPS cookie setting on cloud platforms like Render.
+- **Workflow & UI Cleanup**: Removed redundant inline auth view from `public/index.html`, making `login.html` the sole dedicated authentication page and eliminating DOM flickering. Added hover animations and glow transitions to resource cards and navigation elements for a rich, premium aesthetic.
+- **API Security & Privacy Hardening**: Protected `/api/stress/admin-stats` and `/api/stress/export-csv` endpoints with `authenticateToken` JWT middleware in `routes/stressRoutes.js` to prevent unauthenticated data scraping. Anonymized third-party student names in global CSV downloads to preserve institutional privacy while allowing data export for authenticated users via `fetch` blob downloading.
+- **OAuth Password Crash Protection**: Updated `controllers/authController.js` to intercept password login attempts for Google OAuth accounts where `password` is `null`, returning a user-friendly guidance message instead of triggering a server exception.
+- **Terms & Conditions Workflow**: Added a standalone, glassmorphic `public/terms.html` page featuring medical disclaimers, AI advice disclaimers, and data privacy notices. Integrated clickable terms links into both the login screen and the main dashboard footer, supported by dedicated route handlers in `server.js`.

@@ -5,8 +5,7 @@ const authenticateToken = require('../middleware/authMiddleware');
 
 router.post('/submit', authenticateToken, stressController.submitAssessment);
 router.get('/history', authenticateToken, stressController.getHistory);
-router.get('/admin-stats', stressController.getAdminStats);
-
-router.get('/export-csv', stressController.exportCSV);
+router.get('/admin-stats', authenticateToken, stressController.getAdminStats);
+router.get('/export-csv', authenticateToken, stressController.exportCSV);
 
 module.exports = router;

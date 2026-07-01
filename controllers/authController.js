@@ -29,9 +29,12 @@ exports.login = (req, res) => {
     db.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
         if (err) return res.status(500).json({ error: 'Database error' });
         if (results.length > 0) {
+            if (!results[0].password) {
+                return res.status(401).json({ error: 'This account uses Google Sign-In. Please click Continue with Google.' });
+            }
             const match = await bcrypt.compare(password, results[0].password);
             if (match) {
-                const token = jwt.sign({ username: results[0].username }, JWT_SECRET, { expiresIn: '2h' });
+                const token = jwt.sign({ id: results[0].id, username: results[0].username }, JWT_SECRET, { expiresIn: '2h' });
                 res.json({ success: true, username: results[0].username, token });
             } else {
                 res.status(401).json({ error: 'Invalid credentials' });
