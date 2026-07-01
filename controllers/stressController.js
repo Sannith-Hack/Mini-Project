@@ -57,10 +57,9 @@ exports.getHistory = (req, res) => {
 exports.getAdminStats = (req, res) => {
     db.query('SELECT stress_level, COUNT(*) as count FROM students GROUP BY stress_level', (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json(results);
     });
 };
-\n
+
 exports.exportCSV = (req, res) => {
     db.query('SELECT name, sleep, study, assignments, mood, stress_level, created_at FROM students ORDER BY created_at DESC', (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
