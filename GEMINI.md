@@ -97,6 +97,7 @@ Student mental health
 Early stress detection
 AI-driven personalized advice
 Data tracking and visualization
+Secure authentication and data privacy
 
 --------------------------------------------------
 

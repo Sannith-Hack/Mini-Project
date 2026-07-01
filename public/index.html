@@ -453,6 +453,7 @@
         const API_URL = 'http://localhost:3001';
         let isLoginMode = true;
         let currentUser = null;
+        let authToken = null;
         let userChartInstance, adminChartInstance;
 
         // UI Helpers
@@ -489,7 +490,10 @@
             try {
                 const res = await fetch(`${API_URL}${endpoint}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
                     body: JSON.stringify({ username, password })
                 });
                 
@@ -499,6 +503,7 @@
                     showToast(data.message || 'Login successful!');
                     if(isLoginMode) {
                         currentUser = data.username;
+                        authToken = data.token;
                         document.getElementById('username').value = '';
                         document.getElementById('password').value = '';
                         initDashboard();
@@ -562,7 +567,10 @@
             try {
                 const res = await fetch(`${API_URL}/submit`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
                     body: JSON.stringify(payload)
                 });
                 
@@ -634,7 +642,9 @@
 
         async function loadHistory() {
             try {
-                const res = await fetch(`${API_URL}/history/${currentUser}`);
+                const res = await fetch(`${API_URL}/history`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
                 const data = await res.json();
                 const list = document.getElementById('historyList');
                 

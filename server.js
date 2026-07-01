@@ -2,6 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
@@ -16,6 +21,29 @@ const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+app.use(helmet());
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: { error: 'Too many requests from this IP, please try again later.' }
+});
+app.use('/login', limiter);
+app.use('/register', limiter);
+
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_change_in_production';
+
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ error: 'Forbidden' });
+        req.user = user;
+        next();
+    });
+}
+
 
 // Database connection (Configured for TiDB / Render deployment)
 const db = mysql.createPool({
@@ -29,11 +57,7 @@ const db = mysql.createPool({
     multipleStatements: true
 });
 
-const crypto = require('crypto');
 
-function hashPassword(password) {
-    return crypto.createHash('sha256').update(password).digest('hex');
-}
 
 const dbName = process.env.DB_NAME || 'stressdb';
 
@@ -80,8 +104,9 @@ function calculateStressLevel(sleep, study, assignments, mood) {
     return (stress <= 3) ? "LOW" : (stress <= 6) ? "MEDIUM" : "HIGH";
 }
 
-app.post('/submit', async (req, res) => {
-    const { name, sleep, study, assignments, mood } = req.body;
+app.post('/submit', authenticateToken, async (req, res) => {
+    const { sleep, study, assignments, mood } = req.body;
+    const name = req.user.username;
     const level = calculateStressLevel(sleep, study, assignments, mood);
     
     let finalSuggestion = "";
@@ -118,9 +143,9 @@ app.post('/submit', async (req, res) => {
         });
 });
 
-app.get('/history/:name', (req, res) => {
+app.get('/history', authenticateToken, (req, res) => {
 
-        db.query('SELECT sleep, study, assignments, mood, stress_level, suggestion, created_at FROM students WHERE name = ? ORDER BY created_at DESC LIMIT 10', [req.params.name], (err, results) => {
+        db.query('SELECT sleep, study, assignments, mood, stress_level, suggestion, created_at FROM students WHERE name = ? ORDER BY created_at DESC LIMIT 10', [req.user.username], (err, results) => {
             if (err) return res.status(500).json({ error: err.message });
             res.json(results);
         });
@@ -134,35 +159,42 @@ app.get('/admin-stats', (req, res) => {
         });
 });
 
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
     
-    const hashedPassword = hashPassword(password);
-
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
         db.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword], (err) => {
             if (err) {
                 if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'Username already exists' });
-                return res.status(500).json({ error: err.message });
+                return res.status(500).json({ error: 'Database error' });
             }
             res.json({ success: true, message: 'Registered successfully' });
         });
+    } catch(err) {
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
     
-    const hashedPassword = hashPassword(password);
-
-        db.query('SELECT * FROM users WHERE username = ? AND password = ?', [username, hashedPassword], (err, results) => {
-            if (err) return res.status(500).json({ error: err.message });
-            if (results.length > 0) {
-                res.json({ success: true, username: results[0].username });
+    db.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
+        if (err) return res.status(500).json({ error: 'Database error' });
+        if (results.length > 0) {
+            const match = await bcrypt.compare(password, results[0].password);
+            if (match) {
+                const token = jwt.sign({ username: results[0].username }, JWT_SECRET, { expiresIn: '2h' });
+                res.json({ success: true, username: results[0].username, token });
             } else {
                 res.status(401).json({ error: 'Invalid credentials' });
             }
-        });
+        } else {
+            res.status(401).json({ error: 'Invalid credentials' });
+        }
+    });
 });
 
 app.listen(port, () => {
