@@ -87,4 +87,17 @@ Time saving for students
 
 --------------------------------------------------
 
+Project 5: AI Mental Stress Detector & Advisor
+
+Context:
+College students often face intense academic pressure, leading to hidden mental stress and burnout. This project proposes an AI-powered stress detector where students input their daily habits like sleep, study hours, and mood. The system analyzes these factors to evaluate their stress level (Low/Medium/High) and provides instant, personalized wellness advice using Artificial Intelligence.
+
+Focus:
+Student mental health
+Early stress detection
+AI-driven personalized advice
+Data tracking and visualization
+
+--------------------------------------------------
+
 Generate separate abstracts for each project.

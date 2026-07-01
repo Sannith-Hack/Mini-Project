@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Stress Detector & Advisor - Premium Edition</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #4facfe;
+            --primary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Background animated blobs */
+        .blob {
+            position: absolute;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.6;
+            animation: float 10s infinite ease-in-out alternate;
+        }
+        .blob-1 { top: -10%; left: -10%; width: 400px; height: 400px; background: rgba(79, 172, 254, 0.4); }
+        .blob-2 { bottom: -10%; right: -10%; width: 500px; height: 500px; background: rgba(139, 92, 246, 0.4); animation-delay: -5s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, 50px) scale(1.1); }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+            font-weight: 600;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: -webkit-linear-gradient(#fff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 16px;
+            margin: 10px 0 20px 0;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.2);
+        }
+
+        option {
+            background: #1e1b4b;
+            color: white;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+            font-family: inherit;
+        }
+
+        button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.6);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            background: #475569;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Auth View Specifics */
+        #auth-view {
+            max-width: 450px;
+            width: 100%;
+            margin: auto;
+        }
+
+        .toggle-text {
+            text-align: center;
+            margin-top: 15px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .toggle-text span {
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .toggle-text span:hover {
+            text-decoration: underline;
+        }
+
+        /* Dashboard Grid */
+        #dashboard-view {
+            display: none;
+            width: 100%;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            border-radius: 20px;
+            margin-bottom: 24px;
+        }
+
+        .navbar-brand { font-size: 1.5rem; font-weight: 700; color: white; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .logout-btn { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); padding: 8px 16px; width: auto; font-size: 0.9rem; box-shadow: none; border-radius: 8px;}
+        .logout-btn:hover { background: rgba(239, 68, 68, 0.4); }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        .full-width { grid-column: 1 / -1; }
+
+        /* Results & Status */
+        #result-box {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .status-low { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.5); }
+        .status-medium { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.5); }
+        .status-high { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.5); }
+
+        .ai-suggestion {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary);
+            text-align: left;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .btn-pdf {
+            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+            box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4);
+        }
+
+        /* History Items */
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .history-list::-webkit-scrollbar { width: 6px; }
+        .history-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        .history-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+
+        .history-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid var(--glass-border);
+            transition: all 0.2s ease;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .h-low { border-left-color: #4ade80; }
+        .h-medium { border-left-color: #fbbf24; }
+        .h-high { border-left-color: #f87171; }
+
+        .history-date { font-size: 0.85rem; color: var(--text-muted); }
+        .history-level { font-weight: 600; font-size: 0.95rem; }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transform: translateX(150%);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        /* Resource Cards */
+        .resource-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .resource-icon {
+            font-size: 1.5rem;
+            background: rgba(255,255,255,0.1);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <!-- Auth View -->
+    <div id="auth-view" class="container">
+        <div class="glass-card">
+            <h1 class="title" id="auth-title">Welcome Back</h1>
+            <p class="subtitle" id="auth-subtitle">Log in to track your mental wellness journey</p>
+            
+            <form id="authForm">
+                <input type="text" id="username" placeholder="Username" required autocomplete="username">
+                <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+                <button type="submit" id="authBtn">Login</button>
+            </form>
+            
+            <div class="toggle-text">
+                <span id="toggleAuthMode">Don't have an account? Register here.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard View -->
+    <div id="dashboard-view" class="container">
+        <div class="navbar">
+            <div class="navbar-brand">✨ MindFlow AI</div>
+            <div class="user-info">
+                <span id="welcomeMsg">Welcome, User</span>
+                <button class="logout-btn" id="logoutBtn">Logout</button>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Assessment Form -->
+            <div class="glass-card">
+                <h2>New Assessment</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Let AI analyze your current workload and mood.</p>
+                <form id="stressForm">
+                    <label>Sleep Hours (Last 24h)</label>
+                    <input type="number" id="sleep" placeholder="E.g., 6" required min="0" max="24">
+                    
+                    <label>Study/Work Hours</label>
+                    <input type="number" id="study" placeholder="E.g., 5" required min="0" max="24">
+                    
+                    <label>Active Assignments</label>
+                    <input type="number" id="assignments" placeholder="E.g., 3" required min="0">
+                    
+                    <label>Current Mood</label>
+                    <select id="mood" required>
+                        <option value="Normal">Normal / Balanced</option>
+                        <option value="Anxious">Anxious / Overwhelmed</option>
+                        <option value="Happy">Happy / Energized</option>
+                        <option value="Tired">Tired / Exhausted</option>
+                    </select>
+                    
+                    <button type="submit" id="submitBtn">Analyze My Stress</button>
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            <div class="glass-card" style="display: flex; flex-direction: column;">
+                <h2>Analysis Result</h2>
+                
+                <div id="result-box">
+                    <div id="stressLevel" class="status-badge status-low">LOW STRESS</div>
+                    <div class="ai-suggestion">
+                        <strong style="color: var(--primary); display: block; margin-bottom: 5px;">AI Counselor says:</strong>
+                        <span id="suggestionText">Your results will appear here.</span>
+                    </div>
+                    <button id="downloadPdf" class="btn-pdf">Download Report (PDF)</button>
+                </div>
+                
+                <div id="empty-state" style="text-align: center; margin: auto; color: var(--text-muted); padding: 40px 0;">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">📊</div>
+                    <p>Submit an assessment to see your results and chart.</p>
+                </div>
+
+                <div style="margin-top: auto; padding-top: 20px;">
+                    <canvas id="userChart" style="display: none;"></canvas>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="glass-card">
+                <h2>Your History</h2>
+                <div class="history-list" id="historyList">
+                    <!-- Loaded dynamically -->
+                    <p style="color: var(--text-muted);">No history yet.</p>
+                </div>
+            </div>
+
+            <!-- Resources & Global Stats -->
+            <div class="glass-card">
+                <h2>Wellness Hub</h2>
+                <div class="resource-card">
+                    <div class="resource-icon">🫁</div>
+                    <div>
+                        <strong>4-7-8 Breathing</strong><br>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">Inhale 4s, Hold 7s, Exhale 8s. Great for anxiety.</span>
+                    </div>
+                </div>
+                <div class="resource-card">
+                    <div class="resource-icon">🍅</div>
+                    <div>
+                        <strong>Pomodoro Technique</strong><br>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">Study 25m, Break 5m. Boosts focus.</span>
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 25px; margin-bottom: 15px; font-size: 1.1rem;">Global Student Stress Levels</h3>
+                <div style="height: 180px; display: flex; justify-content: center;">
+                    <canvas id="adminChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Message</div>
+
+    <script>
+        const API_URL = 'http://localhost:3001';
+        let isLoginMode = true;
+        let currentUser = null;
+        let userChartInstance, adminChartInstance;
+
+        // UI Helpers
+        const showToast = (msg, isError = false) => {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.style.borderLeft = isError ? '4px solid #ef4444' : '4px solid #22c55e';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        };
+
+        // Auth Toggle
+        document.getElementById('toggleAuthMode').addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-title').textContent = isLoginMode ? 'Welcome Back' : 'Create Account';
+            document.getElementById('auth-subtitle').textContent = isLoginMode ? 'Log in to track your mental wellness journey' : 'Join MindFlow to manage your student stress';
+            document.getElementById('authBtn').textContent = isLoginMode ? 'Login' : 'Register';
+            document.getElementById('toggleAuthMode').textContent = isLoginMode ? "Don't have an account? Register here." : "Already have an account? Login here.";
+        });
+
+        // Auth Submit
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('authBtn');
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if(!username || !password) return showToast('Please fill all fields', true);
+
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+
+            const endpoint = isLoginMode ? '/login' : '/register';
+            try {
+                const res = await fetch(`${API_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    showToast(data.message || 'Login successful!');
+                    if(isLoginMode) {
+                        currentUser = data.username;
+                        document.getElementById('username').value = '';
+                        document.getElementById('password').value = '';
+                        initDashboard();
+                    } else {
+                        // Switch to login
+                        document.getElementById('toggleAuthMode').click();
+                    }
+                } else {
+                    showToast(data.error || 'Authentication failed', true);
+                }
+            } catch (err) {
+                showToast('Server connection failed', true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = isLoginMode ? 'Login' : 'Register';
+            }
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            currentUser = null;
+            document.getElementById('dashboard-view').style.display = 'none';
+            document.getElementById('auth-view').style.display = 'block';
+            
+            // Reset dashboard
+            document.getElementById('result-box').style.display = 'none';
+            document.getElementById('empty-state').style.display = 'block';
+            if(userChartInstance) userChartInstance.destroy();
+            document.getElementById('userChart').style.display = 'none';
+        });
+
+        // Init Dashboard
+        function initDashboard() {
+            document.getElementById('auth-view').style.display = 'none';
+            document.getElementById('dashboard-view').style.display = 'flex';
+            document.getElementById('welcomeMsg').textContent = `Welcome, ${currentUser}`;
+            
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.font.family = "'Outfit', sans-serif";
+            
+            loadHistory();
+            loadGlobalStats();
+        }
+
+        // Assessment Submit
+        document.getElementById('stressForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = "AI is Analyzing...";
+
+            const payload = {
+                name: currentUser, // Use logged-in user
+                sleep: document.getElementById('sleep').value,
+                study: document.getElementById('study').value,
+                assignments: document.getElementById('assignments').value,
+                mood: document.getElementById('mood').value
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!res.ok) throw new Error('Server error');
+                const result = await res.json();
+
+                // Update UI
+                document.getElementById('empty-state').style.display = 'none';
+                const resultBox = document.getElementById('result-box');
+                resultBox.style.display = 'block';
+                
+                const levelBadge = document.getElementById('stressLevel');
+                levelBadge.textContent = `${result.level} STRESS`;
+                levelBadge.className = `status-badge status-${result.level.toLowerCase()}`;
+                
+                document.getElementById('suggestionText').textContent = result.suggestion;
+                
+                // Keep raw level for PDF
+                resultBox.dataset.rawLevel = result.level;
+
+                renderUserChart(payload);
+                loadHistory();
+                loadGlobalStats();
+                showToast('Analysis complete!');
+                
+                // Clear form except name
+                document.getElementById('stressForm').reset();
+                
+            } catch (err) {
+                showToast("Failed to get analysis. Server might be down.", true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        });
+
+        function renderUserChart(data) {
+            const canvas = document.getElementById('userChart');
+            canvas.style.display = 'block';
+            const ctx = canvas.getContext('2d');
+            
+            if (userChartInstance) userChartInstance.destroy();
+            
+            userChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Sleep (hrs)', 'Study (hrs)', 'Assignments'],
+                    datasets: [{
+                        label: 'Your Metrics',
+                        data: [data.sleep, data.study, data.assignments],
+                        backgroundColor: [
+                            'rgba(167, 139, 250, 0.8)',
+                            'rgba(96, 165, 250, 0.8)',
+                            'rgba(251, 146, 60, 0.8)'
+                        ],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch(`${API_URL}/history/${currentUser}`);
+                const data = await res.json();
+                const list = document.getElementById('historyList');
+                
+                if (Array.isArray(data) && data.length > 0) {
+                    list.innerHTML = data.map(h => {
+                        const date = new Date(h.created_at).toLocaleDateString(undefined, { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+                        const lvlClass = `h-${h.stress_level.toLowerCase()}`;
+                        const colorClass = h.stress_level === 'LOW' ? '#4ade80' : h.stress_level === 'MEDIUM' ? '#fbbf24' : '#f87171';
+                        
+                        return `
+                        <div class="history-item ${lvlClass}">
+                            <div>
+                                <div class="history-date">${date}</div>
+                                <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">
+                                    Sleep: ${h.sleep}h | Study: ${h.study}h | Tasks: ${h.assignments}
+                                </div>
+                            </div>
+                            <div class="history-level" style="color: ${colorClass};">${h.stress_level}</div>
+                        </div>`;
+                    }).join('');
+                } else {
+                    list.innerHTML = "<p style='color: var(--text-muted);'>No past assessments found.</p>";
+                }
+            } catch (err) {
+                console.error("History loading failed:", err);
+            }
+        }
+
+        async function loadGlobalStats() {
+            try {
+                const res = await fetch(`${API_URL}/admin-stats`);
+                const data = await res.json();
+                
+                const ctx = document.getElementById('adminChart').getContext('2d');
+                if (adminChartInstance) adminChartInstance.destroy();
+                
+                // Handle empty state
+                if(data.length === 0) return;
+
+                const labels = data.map(d => d.stress_level);
+                const counts = data.map(d => d.count);
+                
+                const colors = labels.map(l => {
+                    if(l === 'LOW') return 'rgba(74, 222, 128, 0.8)';
+                    if(l === 'MEDIUM') return 'rgba(251, 191, 36, 0.8)';
+                    return 'rgba(248, 113, 113, 0.8)';
+                });
+
+                adminChartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: counts,
+                            backgroundColor: colors,
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'right', labels: { boxWidth: 12, padding: 15 } }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            } catch (err) {
+                console.error("Global stats failed:", err);
+            }
+        }
+
+        // PDF Generation
+        document.getElementById('downloadPdf').addEventListener('click', () => {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const level = document.getElementById('result-box').dataset.rawLevel;
+                const suggestion = document.getElementById('suggestionText').innerText;
+
+                // Header
+                doc.setFillColor(30, 27, 75); // Dark blue
+                doc.rect(0, 0, 210, 45, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(24);
+                doc.text("MindFlow AI Analysis Report", 20, 28);
+                
+                // User Info
+                doc.setTextColor(40, 40, 40);
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "normal");
+                doc.text(`Generated for: ${currentUser}`, 20, 60);
+                doc.text(`Date: ${new Date().toLocaleString()}`, 20, 70);
+                
+                doc.setDrawColor(200, 200, 200);
+                doc.line(20, 80, 190, 80);
+
+                // Result
+                doc.setFontSize(16);
+                doc.text("Assessment Status:", 20, 100);
+                doc.setFont("helvetica", "bold");
+                
+                if(level === 'HIGH') doc.setTextColor(220, 38, 38);
+                else if(level === 'MEDIUM') doc.setTextColor(217, 119, 6);
+                else doc.setTextColor(22, 163, 74);
+                
+                doc.text(`${level} STRESS`, 80, 100);
+                
+                // Suggestion
+                doc.setTextColor(40, 40, 40);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(14);
+                doc.text("AI Counselor Advice:", 20, 120);
+                
+                doc.setFontSize(12);
+                doc.setTextColor(80, 80, 80);
+                const lines = doc.splitTextToSize(suggestion, 170);
+                doc.text(lines, 20, 130);
+                
+                // Footer
+                doc.setFontSize(10);
+                doc.setTextColor(150, 150, 150);
+                doc.text("This report is AI-generated and not a substitute for professional medical advice.", 20, 280);
+
+                doc.save(`MindFlow_Report_${currentUser}.pdf`);
+                showToast('PDF Downloaded successfully!');
+            } catch(e) {
+                console.error(e);
+                showToast('Failed to generate PDF', true);
+            }
+        });
+    </script>
+</body>
+</html>
