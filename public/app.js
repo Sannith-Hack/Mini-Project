@@ -42,15 +42,17 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // Logout
+function forceLogout() {
+    currentUser = null;
+    authToken = null;
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    window.location.href = '/login.html';
+}
+
 const logoutBtn = document.getElementById('logoutBtn');
 if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-        currentUser = null;
-        authToken = null;
-        localStorage.removeItem('token');
-        localStorage.removeItem('username');
-        window.location.href = '/login.html';
-    });
+    logoutBtn.addEventListener('click', forceLogout);
 }
 
 // Init Dashboard
@@ -98,6 +100,7 @@ if (stressForm) {
                 body: JSON.stringify(payload)
             });
             
+            if (res.status === 401 || res.status === 403) return forceLogout();
             if (!res.ok) throw new Error('Server error');
             const result = await res.json();
 
@@ -171,6 +174,7 @@ async function loadHistory() {
         const res = await fetch(`${API_URL}/api/stress/history`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
+        if (res.status === 401 || res.status === 403) return forceLogout();
         const data = await res.json();
         const list = document.getElementById('historyList');
         if (!list) return;
@@ -205,6 +209,7 @@ async function loadGlobalStats() {
         const res = await fetch(`${API_URL}/api/stress/admin-stats`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
+        if (res.status === 401 || res.status === 403) return forceLogout();
         const data = await res.json();
         const adminChartEl = document.getElementById('adminChart');
         if (!adminChartEl) return;
@@ -322,6 +327,7 @@ if (downloadCsvBtn) {
             const res = await fetch(`${API_URL}/api/stress/export-csv`, {
                 headers: { 'Authorization': `Bearer ${authToken}` }
             });
+            if (res.status === 401 || res.status === 403) return forceLogout();
             if (!res.ok) throw new Error('Export failed');
             const blob = await res.blob();
             const url = window.URL.createObjectURL(blob);
