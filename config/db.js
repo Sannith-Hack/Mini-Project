@@ -8,7 +8,10 @@ const db = mysql.createPool({
     database: process.env.DB_NAME || undefined,
     port: process.env.DB_PORT || 3306,
     ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : undefined,
-    multipleStatements: true
+    multipleStatements: true,
+    connectionLimit: 100,
+    waitForConnections: true,
+    queueLimit: 0
 });
 
 const dbName = process.env.DB_NAME || 'stressdb';

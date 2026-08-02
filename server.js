@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const compression = require('compression');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger');
 const rateLimit = require('express-rate-limit');
@@ -36,6 +37,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+app.use(compression());
 // Ensure static assets are served from public folder, but do NOT automatically serve index.html for '/'
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
@@ -90,6 +92,12 @@ app.get('/terms', (req, res) => {
 });
 app.get('/terms.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'terms.html'));
+});
+
+// Global error handler for reliability
+app.use((err, req, res, next) => {
+  console.error('Unhandled Error:', err);
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
 app.listen(port, () => {
